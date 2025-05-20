@@ -8,7 +8,10 @@ class ImageController {
         return res.status(400).json({ error: 'No image file provided' });
       }
 
-      const imageData = await imageService.saveImage(req.file);
+      // Get previous image URL from request body if it exists
+      const previousImageUrl = req.body.previous_image_url;
+      
+      const imageData = await imageService.saveImage(req.file, previousImageUrl);
       logger.info(`Image uploaded: ${imageData.filename}`);
       
       return res.status(201).json({
@@ -28,6 +31,27 @@ class ImageController {
     } catch (error) {
       logger.error('Error in getImages controller:', error);
       return res.status(500).json({ error: 'Failed to retrieve images' });
+    }
+  }
+
+  async deleteImage(req, res) {
+    try {
+      const { image_url } = req.body;
+      
+      if (!image_url) {
+        return res.status(400).json({ error: 'Image URL is required' });
+      }
+      
+      const result = await imageService.deleteImageByUrl(image_url);
+      
+      if (result.success) {
+        return res.status(200).json({ message: result.message });
+      } else {
+        return res.status(404).json({ error: result.message });
+      }
+    } catch (error) {
+      logger.error('Error in deleteImage controller:', error);
+      return res.status(500).json({ error: 'Failed to delete image' });
     }
   }
 }
