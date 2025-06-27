@@ -6,6 +6,7 @@ const path = require('path');
 const config = require('./config');
 const logger = require('./utils/logger');
 const imageRoutes = require('./routes/imageRoutes');
+const emailRoutes = require('./routes/emailRoutes');
 
 // Initialize express app
 const app = express();
@@ -22,6 +23,7 @@ app.use('/images', express.static(config.upload.absolutePath));
 
 // API routes
 app.use('/api/images', imageRoutes);
+app.use('/api/email', emailRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
