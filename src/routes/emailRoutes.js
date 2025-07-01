@@ -17,4 +17,10 @@ router.get('/test', emailController.testConnection);
 // Get email service status
 router.get('/status', emailController.getStatus);
 
+// Preview sent email (for mock service)
+router.get('/preview/:id', emailController.previewEmail);
+
+// Get all sent emails (for debugging)
+router.get('/sent', emailController.getSentEmails);
+
 module.exports = router;

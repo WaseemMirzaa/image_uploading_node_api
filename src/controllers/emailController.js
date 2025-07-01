@@ -1,4 +1,4 @@
-const emailService = require('../services/emailService');
+const emailService = require('../services/mockEmailService');
 const logger = require('../utils/logger');
 
 class EmailController {
@@ -289,6 +289,57 @@ Dein 4 Secrets Wedding Team`;
 
       res.status(500).json({
         error: 'Failed to get email status',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Preview sent email (for mock service)
+   * GET /api/email/preview/:id
+   */
+  async previewEmail(req, res) {
+    try {
+      const { id } = req.params;
+      const email = emailService.getEmail ? emailService.getEmail(id) : null;
+
+      if (!email) {
+        return res.status(404).json({
+          error: 'Email not found',
+          id: id
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        email: email
+      });
+    } catch (error) {
+      logger.error('Error getting email preview:', error);
+      res.status(500).json({
+        error: 'Failed to get email preview',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Get all sent emails (for debugging)
+   * GET /api/email/sent
+   */
+  async getSentEmails(req, res) {
+    try {
+      const emails = emailService.getSentEmails ? emailService.getSentEmails() : [];
+
+      res.status(200).json({
+        success: true,
+        count: emails.length,
+        emails: emails
+      });
+    } catch (error) {
+      logger.error('Error getting sent emails:', error);
+      res.status(500).json({
+        error: 'Failed to get sent emails',
         message: error.message
       });
     }
