@@ -1,4 +1,4 @@
-const emailService = require('../services/mockEmailService');
+const emailService = require('../services/realEmailService');
 const logger = require('../utils/logger');
 
 class EmailController {
