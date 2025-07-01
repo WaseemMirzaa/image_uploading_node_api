@@ -8,6 +8,9 @@ router.post('/send', emailController.sendEmail);
 // Send invitation email
 router.post('/send-invitation', emailController.sendInvitation);
 
+// Send declined invitation email
+router.post('/declined-invitation', emailController.declinedInvitation);
+
 // Send revoked access email
 router.post('/revoke-access', emailController.revokeAccess);
 

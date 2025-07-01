@@ -126,7 +126,7 @@ class EmailController {
 
       // Prepare invitation email data
       const subject = `Du wurdest eingeladen, bei einer Hochzeits-Checkliste mitzuarbeiten 💍`;
-      const message = `Hallo,
+      const message = `Hi,
 
 ${inviterName} hat dich eingeladen, bei einer Hochzeits-Checkliste in der 4 Secrets Wedding App mitzuarbeiten! 👰🤵
 
@@ -185,6 +185,87 @@ Dein 4 Secrets Wedding Team`;
   }
 
   /**
+   * Send declined invitation email
+   * POST /api/email/declined-invitation
+   * Body: { email, declinerName }
+   */
+  async declinedInvitation(req, res) {
+    try {
+      const { email, declinerName } = req.body;
+
+      // Validate required fields
+      if (!email || !declinerName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          required: ['email', 'declinerName'],
+          received: Object.keys(req.body)
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          error: 'Invalid email format',
+          email: email
+        });
+      }
+
+      // Prepare declined invitation email data
+      const subject = `Einladung zur Hochzeits-Checkliste wurde abgelehnt 💔`;
+      const message = `Hi,
+
+${declinerName} hat die Einladung zur Zusammenarbeit an der Hochzeits-Checkliste in der 4 Secrets Wedding App abgelehnt.
+
+Die Einladung zur gemeinsamen Hochzeitsplanung wurde nicht angenommen. Du kannst jederzeit eine neue Einladung senden, falls sich die Situation ändert.
+
+📲 Die 4 Secrets Wedding App findest du hier:
+– Für Android: https://play.google.com/store/apps/details?id=com.app.four_secrets_wedding_app
+– Für iOS: https://apps.apple.com/app/4-secrets-wedding/id[APP_ID]
+
+Bei Fragen stehen wir dir jederzeit zur Verfügung!
+
+Liebe Grüße
+Dein 4 Secrets Wedding Team`;
+
+      const emailData = {
+        to: email,
+        subject: subject,
+        message: message
+      };
+
+      // Send the email
+      const result = await emailService.sendEmail(emailData);
+
+      logger.info('Declined invitation email sent via API:', {
+        to: email,
+        declinerName: declinerName,
+        messageId: result.messageId
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Declined invitation email sent successfully',
+        data: {
+          to: email,
+          declinerName: declinerName,
+          subject: subject,
+          messageId: result.messageId,
+          previewUrl: result.previewUrl
+        }
+      });
+
+    } catch (error) {
+      logger.error('Error sending declined invitation email:', error);
+
+      res.status(500).json({
+        error: 'Failed to send declined invitation email',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Send revoked access email
    * POST /api/email/revoke-access
    * Body: { email, inviterName }
@@ -213,13 +294,13 @@ Dein 4 Secrets Wedding Team`;
 
       // Prepare revoked access email data
       const subject = `Deine Mitarbeit an der Hochzeits-Checkliste wurde beendet 💐`;
-      const message = `Hallo,
+      const message = `Hi,
 
-wir möchten dich darüber informieren, dass dein Zugang zur gemeinsamen Hochzeits-Checkliste in der 4 Secrets Wedding App von ${inviterName} beendet wurde. 📝
+${inviterName} hat deine Mitarbeit an der gemeinsamen Hochzeits-Checkliste in der 4 Secrets Wedding App beendet. 📝
 
 Du kannst die Checkliste ab sofort nicht mehr bearbeiten oder einsehen.
 
-Diese Änderung wurde von ${inviterName} vorgenommen. Falls du Rückfragen hast, wende dich gerne direkt an sie oder ihn.
+Falls du Rückfragen hast, wende dich gerne direkt an ${inviterName}.
 
 Natürlich stehen wir dir auch bei allgemeinen Fragen zur App jederzeit zur Verfügung.
 
