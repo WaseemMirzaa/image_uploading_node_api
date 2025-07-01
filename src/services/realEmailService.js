@@ -10,64 +10,52 @@ class RealEmailService {
 
   async initializeTransporter() {
     try {
-      // Try multiple email services in order of preference
-      const emailConfigs = [
-        {
-          name: 'Gmail',
-          config: {
-            service: 'gmail',
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-              user: 'unicorndev.02.1997@gmail.com',
-              pass: 'your-gmail-app-password' // You need to set this
-            },
-            tls: { rejectUnauthorized: false }
-          }
-        },
-        {
-          name: 'SendGrid',
-          config: {
-            host: 'smtp.sendgrid.net',
-            port: 587,
-            secure: false,
-            auth: {
-              user: 'apikey',
-              pass: process.env.SENDGRID_API_KEY || 'your-sendgrid-api-key'
-            }
-          }
-        }
-      ];
-
-      // Try each configuration
-      for (const emailConfig of emailConfigs) {
-        try {
-          this.transporter = nodemailer.createTransport(emailConfig.config);
-          await this.transporter.verify();
-          logger.info(`Real email service initialized with ${emailConfig.name}`);
-          return;
-        } catch (configError) {
-          logger.warn(`Failed to initialize ${emailConfig.name}:`, configError.message);
-        }
-      }
-
-      // Fallback to Ethereal for testing if all real services fail
-      const testAccount = await nodemailer.createTestAccount();
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
+      // Use GMX SMTP configuration from .env
+      const gmxConfig = {
+        host: process.env.SMTP_HOST || 'mail.gmx.net',
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: false, // true for 465, false for other ports
         auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
+          user: process.env.EMAIL_USER || '4secrets-wedding@gmx.de',
+          pass: process.env.EMAIL_PASS || '4WZQZZ5N2QV3PE7MKR5D'
+        },
+        tls: {
+          rejectUnauthorized: false
         }
+      };
+
+      logger.info('Initializing GMX SMTP with config:', {
+        host: gmxConfig.host,
+        port: gmxConfig.port,
+        user: gmxConfig.auth.user
       });
-      logger.info('Using Ethereal test account (emails will be logged only):', testAccount.user);
+
+      this.transporter = nodemailer.createTransport(gmxConfig);
+
+      // Test the connection
+      await this.transporter.verify();
+      logger.info('✅ GMX SMTP connection verified successfully!');
 
     } catch (error) {
-      logger.error('Failed to initialize any email service:', error);
-      throw error;
+      logger.error('❌ Failed to initialize GMX SMTP:', error.message);
+
+      // Fallback to Ethereal for testing if GMX fails
+      try {
+        const testAccount = await nodemailer.createTestAccount();
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass
+          }
+        });
+        logger.info('⚠️ Using Ethereal test account as fallback:', testAccount.user);
+      } catch (fallbackError) {
+        logger.error('Failed to create fallback email service:', fallbackError);
+        throw fallbackError;
+      }
     }
   }
 
@@ -90,7 +78,7 @@ class RealEmailService {
     };
 
     const mailOptions = {
-      from: `"4 Secrets Wedding" <4secrets-wedding@gmx.de>`, // Use the wedding email as sender
+      from: `"4 Secrets Wedding" <${process.env.EMAIL_FROM || '4secrets-wedding@gmx.de'}>`,
       to: to,
       subject: subject,
       text: message,
