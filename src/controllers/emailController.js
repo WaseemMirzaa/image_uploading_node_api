@@ -1,4 +1,4 @@
-const emailService = require('../services/simpleEmailService');
+const emailService = require('../services/realEmailService');
 const logger = require('../utils/logger');
 
 class EmailController {

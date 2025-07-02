@@ -1,10 +1,37 @@
+const nodemailer = require('nodemailer');
 const logger = require('../utils/logger');
 
 class SimpleEmailService {
   constructor() {
     this.emails = [];
+    this.transporter = null;
+    this.initializeTransporter();
     logger.info('✅ Simple Email Service initialized');
-    console.log('🚀 Simple Email Service started - all emails will be logged to console');
+    console.log('🚀 Simple Email Service started - will attempt real email delivery');
+  }
+
+  async initializeTransporter() {
+    try {
+      // Try to create Ethereal test account for preview URLs
+      const testAccount = await nodemailer.createTestAccount();
+      this.transporter = nodemailer.createTransporter({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+
+      console.log('✅ Ethereal email service initialized');
+      console.log('📧 Test account:', testAccount.user);
+      console.log('🔗 Preview URLs will be generated for all emails');
+
+    } catch (error) {
+      console.log('⚠️ Ethereal failed, using mock service');
+      this.transporter = null;
+    }
   }
 
   async sendEmail(emailData) {
