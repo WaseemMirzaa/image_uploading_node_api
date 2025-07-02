@@ -1,0 +1,101 @@
+================================================================================
+DIGITALOCEAN SMTP PORT UNBLOCK REQUEST
+================================================================================
+
+Subject: Request to Unblock SMTP Ports for Wedding Application Email Service
+
+Hello DigitalOcean Support Team,
+
+I am developing a wedding planning application called "4 Secrets Wedding" and need to send transactional emails to users. Currently, I am unable to send emails via SMTP due to blocked outbound ports on my droplet.
+
+REQUEST DETAILS:
+- Droplet IP: 164.92.175.72
+- Required Ports: 587 (STARTTLS) and 465 (SSL/TLS)
+- Email Provider: GMX SMTP (mail.gmx.net)
+- Application Purpose: Wedding planning app for sending invitation emails, collaboration notifications, and access management emails
+
+USE CASE:
+My application sends legitimate transactional emails including:
+- Wedding checklist collaboration invitations
+- Invitation acceptance/decline notifications  
+- Access revocation notifications
+- User account management emails
+
+TECHNICAL DETAILS:
+- Application: Node.js wedding planning API
+- Email Service: GMX SMTP with proper authentication
+- Email Volume: Low volume (personal wedding planning use)
+- Recipients: Legitimate users who have requested collaboration
+
+BUSINESS JUSTIFICATION:
+This is a legitimate wedding planning application that requires email functionality for core features. All emails are transactional and sent only to users who have explicitly requested collaboration on wedding checklists.
+
+I understand DigitalOcean blocks SMTP ports by default to prevent spam, and I confirm that:
+- I will only send legitimate transactional emails
+- I will not send bulk marketing emails
+- I will implement proper email authentication
+- I will monitor and prevent any abuse
+
+Could you please unblock outbound SMTP access on ports 587 and 465 for my droplet? This is essential for my application's core functionality.
+
+Thank you for your assistance.
+
+Best regards,
+[Your Name]
+
+================================================================================
+ALTERNATIVE SHORTER VERSION
+================================================================================
+
+Subject: SMTP Port Unblock Request - Wedding App Transactional Emails
+
+Hello,
+
+I need to send transactional emails for my wedding planning application and require SMTP port access.
+
+DETAILS:
+- Droplet IP: 164.92.175.72
+- Ports Needed: 587, 465
+- Provider: GMX SMTP (mail.gmx.net)
+- Purpose: Wedding app sending invitation and collaboration emails
+- Volume: Low volume, legitimate transactional emails only
+
+USE CASE: 
+My "4 Secrets Wedding" app sends collaboration invitations, acceptance/decline notifications, and access management emails to wedding planners.
+
+I confirm this is for legitimate transactional emails only, not marketing or bulk email.
+
+Please unblock outbound SMTP access for my droplet.
+
+Thank you!
+
+================================================================================
+INSTRUCTIONS FOR SUBMITTING
+================================================================================
+
+1. Go to DigitalOcean Support: https://cloud.digitalocean.com/support/tickets
+2. Click "Create a Ticket"
+3. Select "Technical" as ticket type
+4. Copy and paste either version above
+5. Replace [Your Name] with your actual name
+6. Submit the ticket
+
+Expected Response Time: 24-48 hours
+Status: SMTP ports are typically unblocked for legitimate use cases
+
+================================================================================
+BACKUP PLAN WHILE WAITING
+================================================================================
+
+While waiting for SMTP unblock, your current email service uses Ethereal Email:
+- Provides preview URLs to view email content
+- Shows exactly how emails will look when sent
+- Allows testing all email functionality
+- No actual emails sent to inboxes
+
+Once SMTP is unblocked:
+- Update email service to use GMX SMTP
+- Real emails will be delivered to Gmail inboxes
+- Keep preview functionality for debugging
+
+================================================================================
