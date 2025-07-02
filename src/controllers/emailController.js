@@ -1,4 +1,4 @@
-const emailService = require('../services/port2525EmailService');
+const emailService = require('../services/simpleEmailService');
 const logger = require('../utils/logger');
 
 class EmailController {
