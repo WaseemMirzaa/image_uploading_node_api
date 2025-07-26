@@ -41,7 +41,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
-app.use('/images', express.static(FILES_DIR));
+app.use('/files', express.static(FILES_DIR));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -66,27 +66,13 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
-  const isValid = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/jpg', 
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf'
-  ];
-  
-  if (isValid && allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, JPG, PNG, GIF, WEBP, and PDF files are allowed.'));
-  }
+  // Allow all file types
+  cb(null, true);
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10485760 }, // 10MB limit
+  limits: { fileSize: 52428800 }, // 50MB limit for all file types
   fileFilter
 });
 
@@ -286,7 +272,7 @@ async function sendEmailViaBrevo(to, subject, message, type = 'general') {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    service: '4 Secrets Wedding Email + File Service',
+    service: '4 Secrets Wedding Email + File Service (All File Types)',
     port: PORT,
     timestamp: new Date().toISOString(),
     version: '1.0.0'
@@ -470,7 +456,7 @@ app.get('/api/email/:id', (req, res) => {
   res.json(email);
 });
 
-// Upload file (images and PDFs)
+// Upload file (all file types allowed)
 app.post('/api/images/upload', upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
@@ -495,14 +481,27 @@ app.post('/api/images/upload', upload.single('image'), (req, res) => {
       mimetype: req.file.mimetype,
       size: req.file.size,
       path: req.file.path,
-      url: `/images/${req.file.filename}`,
+      url: `/files/${req.file.filename}`,
       timestamp: new Date().toISOString()
     };
 
     uploadedFiles.push(fileData);
 
-    const fileType = req.file.mimetype.startsWith('image/') ? 'Image' : 'PDF';
-    console.log(`📄 ${fileType} uploaded: ${fileData.filename}`);
+    // Determine file type for logging
+    let fileType = 'File';
+    if (req.file.mimetype.startsWith('image/')) {
+      fileType = 'Image';
+    } else if (req.file.mimetype === 'application/pdf') {
+      fileType = 'PDF';
+    } else if (req.file.mimetype.startsWith('video/')) {
+      fileType = 'Video';
+    } else if (req.file.mimetype.startsWith('audio/')) {
+      fileType = 'Audio';
+    } else if (req.file.mimetype.includes('document') || req.file.mimetype.includes('text')) {
+      fileType = 'Document';
+    }
+
+    console.log(`📄 ${fileType} uploaded: ${fileData.filename} (${req.file.mimetype})`);
     logger.info(`📄 ${fileType} uploaded:`, fileData);
 
     res.status(201).json({
@@ -522,7 +521,7 @@ app.get('/api/images', (req, res) => {
     const files = fs.readdirSync(FILES_DIR).filter(file => !file.startsWith('.'));
     const filesList = files.map(filename => ({
       filename,
-      url: `/images/${filename}`,
+      url: `/files/${filename}`,
       path: path.join(FILES_DIR, filename)
     }));
 
@@ -586,10 +585,11 @@ app.delete('/api/images/delete', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 4 Secrets Wedding - Email + File Service running on port ${PORT}`);
   console.log(`📧 Brevo API configured and ready!`);
-  console.log(`📄 File upload configured and ready!`);
+  console.log(`📄 File upload configured and ready! (All file types allowed)`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`📡 Email API: http://localhost:${PORT}/api/email/`);
   console.log(`📄 File API: http://localhost:${PORT}/api/images/`);
+  console.log(`📁 Files served at: http://localhost:${PORT}/files/`);
   console.log(`📁 Files stored in: ${FILES_DIR}`);
   
   logger.info('✅ Email + File Service started successfully', {

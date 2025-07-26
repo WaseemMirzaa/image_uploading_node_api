@@ -3,7 +3,7 @@
 ## 🚀 Features
 
 - ✅ **Email Service** - Brevo API with German templates
-- ✅ **File Upload** - Images (JPEG, PNG, GIF, WEBP) + PDFs
+- ✅ **File Upload** - All file types (50MB limit)
 - ✅ **No SMTP Issues** - Uses HTTP API instead of SMTP ports
 - ✅ **Production Ready** - PM2, logging, security, error handling
 - ✅ **Mobile App Ready** - RESTful API for mobile integration
@@ -19,7 +19,7 @@
 
 ## 📄 File Upload APIs
 
-- Upload Images/PDFs (10MB limit)
+- Upload Any File Type (50MB limit)
 - Get All Files
 - Delete Files
 - Previous File Replacement
@@ -85,8 +85,8 @@ curl http://localhost:3001/api/images
 
 - **Port:** 3001 (configurable via PORT env var)
 - **File Storage:** `./uploads/` directory
-- **Max File Size:** 10MB
-- **Supported Files:** JPEG, PNG, GIF, WEBP, PDF
+- **Max File Size:** 50MB
+- **Supported Files:** All file types
 - **Email Service:** Brevo API
 
 ## 📱 Mobile App Integration
