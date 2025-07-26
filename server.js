@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -11,6 +12,9 @@ const fs = require('fs');
 const BREVO_API_KEY = process.env.BREVO_API_KEY || 'your_brevo_api_key_here';
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const EMAIL_FROM = 'support@brevo.4secrets-wedding-planner.de';
+
+// Debug: Log API key status (without exposing the key)
+console.log('🔑 API Key Status:', BREVO_API_KEY.startsWith('xkeysib-') ? '✅ Valid Brevo API Key Loaded' : '❌ Using Placeholder Key');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
