@@ -4,22 +4,25 @@ const logger = require('../utils/logger');
 // Initialize Firebase Admin SDK
 let firebaseInitialized = false;
 let firebaseError = null;
+let useMockFirebase = false;
 
 try {
   const serviceAccount = require('../../firebase-service-account.json');
-  
+
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       projectId: process.env.FIREBASE_PROJECT_ID || 'secrets-wedding'
     });
   }
-  
+
   firebaseInitialized = true;
   logger.info('🔥 Firebase Admin SDK initialized successfully');
 } catch (error) {
   firebaseError = error.message;
-  logger.error('❌ Firebase initialization failed:', error);
+  useMockFirebase = true;
+  logger.error('❌ Firebase initialization failed, using mock service:', error.message);
+  logger.info('🔧 Mock Firebase service enabled for testing');
 }
 
 // Store sent notifications for debugging

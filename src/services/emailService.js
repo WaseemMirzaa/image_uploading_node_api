@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 const logger = require('../utils/logger');
 
 class EmailService {
@@ -76,6 +77,64 @@ class EmailService {
       throw new Error('Missing required fields: to, subject, and message are required');
     }
 
+    // Check if Brevo API is configured
+    if (process.env.BREVO_API_KEY && process.env.BREVO_API_URL) {
+      return await this.sendEmailViaBrevo(emailData);
+    }
+
+    // Fallback to SMTP/Nodemailer
+    return await this.sendEmailViaSMTP(emailData);
+  }
+
+  async sendEmailViaBrevo(emailData) {
+    const { to, subject, message, from } = emailData;
+
+    try {
+      const brevoData = {
+        sender: {
+          name: "4 Secrets Wedding",
+          email: from || process.env.EMAIL_FROM || 'support@brevo.4secrets-wedding-planner.de'
+        },
+        to: [
+          {
+            email: to,
+            name: to.split('@')[0] // Use email prefix as name
+          }
+        ],
+        subject: subject,
+        htmlContent: `<p>${message.replace(/\n/g, '<br>')}</p>`,
+        textContent: message
+      };
+
+      const response = await axios.post(process.env.BREVO_API_URL, brevoData, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'api-key': process.env.BREVO_API_KEY
+        }
+      });
+
+      logger.info('Email sent via Brevo API:', {
+        messageId: response.data.messageId,
+        to: to,
+        subject: subject
+      });
+
+      return {
+        success: true,
+        messageId: response.data.messageId || `brevo-${Date.now()}`,
+        service: 'brevo'
+      };
+
+    } catch (error) {
+      logger.error('Failed to send email via Brevo:', error.response?.data || error.message);
+      throw new Error(`Failed to send email via Brevo: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  async sendEmailViaSMTP(emailData) {
+    const { to, subject, message, from } = emailData;
+
     // Email options
     const mailOptions = {
       from: from || process.env.EMAIL_FROM || 'noreply@example.com',
@@ -88,8 +147,8 @@ class EmailService {
     try {
       // Send the email
       const info = await this.transporter.sendMail(mailOptions);
-      
-      logger.info('Email sent successfully:', {
+
+      logger.info('Email sent via SMTP:', {
         messageId: info.messageId,
         to: to,
         subject: subject
@@ -103,11 +162,12 @@ class EmailService {
       return {
         success: true,
         messageId: info.messageId,
-        previewUrl: nodemailer.getTestMessageUrl(info) || null
+        previewUrl: nodemailer.getTestMessageUrl(info) || null,
+        service: 'smtp'
       };
     } catch (error) {
-      logger.error('Failed to send email:', error);
-      throw new Error(`Failed to send email: ${error.message}`);
+      logger.error('Failed to send email via SMTP:', error);
+      throw new Error(`Failed to send email via SMTP: ${error.message}`);
     }
   }
 

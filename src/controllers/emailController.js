@@ -1,4 +1,4 @@
-const emailService = require('../services/cloudEmailService');
+const emailService = require('../services/emailService');
 const logger = require('../utils/logger');
 
 class EmailController {

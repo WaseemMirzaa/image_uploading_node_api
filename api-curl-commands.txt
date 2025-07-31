@@ -55,7 +55,7 @@ curl -X POST http://164.92.175.72:8080/api/email/send-invitation \
   }'
 
 # 4. Send Declined Invitation Email
-curl -X POST http://164.92.175.72:8080/api/email/declined-invitation \
+curl -X POST http://164.92.175.72:3001/api/email/declined-invitation \
   -H "Content-Type: application/json" \
   -d '{
     "email": "m.waseemmirzaa@gmail.com",
@@ -63,7 +63,7 @@ curl -X POST http://164.92.175.72:8080/api/email/declined-invitation \
   }'
 
 # 5. Send Revoked Access Email
-curl -X POST http://164.92.175.72:8080/api/email/revoke-access \
+curl -X POST http://164.92.175.72:3001/api/email/revoke-access \
   -H "Content-Type: application/json" \
   -d '{
     "email": "unicorndev.02.1997@gmail.com",
