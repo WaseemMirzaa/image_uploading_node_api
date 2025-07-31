@@ -1,0 +1,165 @@
+🔧 SAFE File Upload Addition for DigitalOcean Server
+==================================================
+
+⚠️ IMPORTANT: This script ONLY adds file upload functionality.
+   It does NOT change any of your existing working APIs!
+
+QUICK COMMAND (Run this on your DigitalOcean server):
+---------------------------------------------------
+
+cd /path/to/your/project && curl -fsSL https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/simple-add-file-upload.sh | bash
+
+OR STEP BY STEP:
+---------------
+
+1. SSH into your DigitalOcean server
+2. Navigate to your project directory (where digitalocean-server.js is located)
+3. Download and run the simple script:
+
+   wget https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/simple-add-file-upload.sh
+   chmod +x simple-add-file-upload.sh
+   ./simple-add-file-upload.sh
+
+WHAT THIS SCRIPT DOES:
+---------------------
+
+✅ SAFE ADDITIONS ONLY:
+   - Installs multer dependency
+   - Creates src/files directory
+   - Adds file upload configuration
+   - Adds 4 new file upload endpoints
+   - Creates automatic backup before changes
+
+❌ DOES NOT CHANGE:
+   - Your existing email APIs
+   - Your existing notification APIs
+   - Your existing server configuration
+   - Any working functionality
+
+NEW ENDPOINTS ADDED:
+-------------------
+
+POST   /upload                    - Upload any file (images, PDFs, documents, videos)
+GET    /files                     - List all uploaded files
+DELETE /files/delete              - Delete a specific file
+GET    /api/files/status          - Check file upload API status
+
+FILE ACCESS:
+-----------
+
+After upload, files are accessible at:
+http://your-server-ip:3001/files/[filename]
+
+SUPPORTED FILE TYPES:
+--------------------
+
+- Images: JPEG, PNG, GIF, WEBP
+- Documents: PDF, DOC, DOCX, TXT, XLS, XLSX, PPT, PPTX
+- Archives: ZIP, RAR
+- Media: MP4, MP3, AVI, MOV
+- Maximum file size: 10MB
+
+TESTING THE NEW FUNCTIONALITY:
+-----------------------------
+
+1. Check if file upload is working:
+   curl http://your-server-ip:3001/api/files/status
+
+2. Upload a test file:
+   curl -X POST -F "file=@test.pdf" http://your-server-ip:3001/upload
+
+3. List uploaded files:
+   curl http://your-server-ip:3001/files
+
+4. Access uploaded file:
+   http://your-server-ip:3001/files/[filename]
+
+5. Delete a file:
+   curl -X DELETE -H "Content-Type: application/json" \
+        -d '{"file_url":"/files/filename.pdf"}' \
+        http://your-server-ip:3001/files/delete
+
+VERIFY EXISTING APIs STILL WORK:
+-------------------------------
+
+After running the script, test your existing APIs:
+
+1. Email API:
+   curl http://your-server-ip:3001/api/email/status
+
+2. Notifications API:
+   curl http://your-server-ip:3001/api/notifications/status
+
+3. Health check:
+   curl http://your-server-ip:3001/health
+
+SAFETY FEATURES:
+---------------
+
+✅ Automatic backup created before changes
+✅ Only adds new functionality, doesn't modify existing code
+✅ Checks if features already exist before adding
+✅ Tests all APIs after installation
+✅ Provides rollback instructions
+
+ROLLBACK (if needed):
+--------------------
+
+If something goes wrong, the script creates a backup:
+
+1. Find your backup file:
+   ls -la digitalocean-server.js.backup.*
+
+2. Restore the backup:
+   cp digitalocean-server.js.backup.YYYYMMDD_HHMMSS digitalocean-server.js
+   pm2 restart 4secrets-wedding-api
+
+EXAMPLE USAGE FROM YOUR APP:
+---------------------------
+
+// Upload a file
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+
+fetch('http://your-server:3001/upload', {
+    method: 'POST',
+    body: formData
+})
+.then(response => response.json())
+.then(data => {
+    console.log('File uploaded:', data.file.url);
+});
+
+// List files
+fetch('http://your-server:3001/files')
+.then(response => response.json())
+.then(data => {
+    console.log('Files:', data.files);
+});
+
+TROUBLESHOOTING:
+---------------
+
+If the script fails:
+1. Check you're in the correct directory (where digitalocean-server.js exists)
+2. Ensure you have write permissions
+3. Check PM2 status: pm2 status
+4. View server logs: pm2 logs 4secrets-wedding-api
+5. Check if port 3001 is accessible
+
+If file uploads don't work:
+1. Check directory permissions: ls -la src/files
+2. Check disk space: df -h
+3. Test with a small file first
+4. Check server logs for errors
+
+SUPPORT:
+--------
+
+If you encounter any issues:
+1. The script creates detailed logs
+2. All existing functionality is preserved
+3. Backup files are created for safety
+4. You can always rollback to the previous version
+
+✅ This script is designed to be 100% safe and only ADD functionality!

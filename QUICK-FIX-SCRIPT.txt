@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# ================================================================================
+# QUICK FIX: ALLOW BOTH IMAGES AND PDFS
+# ================================================================================
+# This script fixes the file filter to accept both images and PDFs
+# Run this on your DigitalOcean server to fix the upload issue
+
+echo "🔧 Quick Fix: Allowing both Images and PDFs"
+echo "📧 Server: 164.92.175.72:3001"
+echo ""
+
+# Navigate to the application directory
+cd /var/www/wedding-email-3001
+
+# Stop the current service
+echo "🛑 Stopping current service..."
+pm2 stop wedding-email-3001
+
+# Backup current server.js
+echo "💾 Creating backup..."
+cp server.js server.js.backup
+
+# Update the file filter to accept both images and PDFs
+echo "🔧 Updating file filter..."
+sed -i 's/const allowedTypes = \/pdf\/;/const allowedTypes = \/jpeg|jpg|png|gif|webp|pdf\/;/g' server.js
+
+# Update the file filter validation
+sed -i 's/if (isValid && file.mimetype === '\''application\/pdf'\'') {/if (isValid \&\& (file.mimetype.startsWith('\''image\/'\'')\|\|file.mimetype === '\''application\/pdf'\'')) {/g' server.js
+
+# Update error message
+sed -i 's/Only PDF files are allowed/Only JPEG, JPG, PNG, GIF, WEBP, and PDF files are allowed/g' server.js
+
+# Update file size limit to 10MB for both
+sed -i 's/limits: { fileSize: 5242880 }/limits: { fileSize: 10485760 }/g' server.js
+
+# Update console messages
+sed -i 's/No PDF file provided/No file provided/g' server.js
+sed -i 's/Failed to upload PDF/Failed to upload file/g' server.js
+
+echo "✅ File filter updated to accept both images and PDFs"
+
+# Restart the service
+echo "🚀 Restarting service..."
+pm2 restart wedding-email-3001
+
+# Wait for restart
+echo "⏳ Waiting for service to restart..."
+sleep 10
+
+# Test the service
+echo "🧪 Testing service..."
+curl -s http://localhost:3001/health | head -c 200
+echo ""
+
+echo ""
+echo "============================================================"
+echo "🎉 QUICK FIX COMPLETED!"
+echo "============================================================"
+echo "✅ File Types: Images (JPEG, PNG, GIF, WEBP) + PDFs"
+echo "✅ Max Size: 10MB for all files"
+echo "✅ URLs: Same as before"
+echo "✅ Mobile App: Should work without changes"
+echo ""
+echo "🧪 Test with your mobile app now!"
+echo ""
+echo "📊 Check status:"
+echo "   pm2 status"
+echo "   pm2 logs wedding-email-3001"
+echo "============================================================"

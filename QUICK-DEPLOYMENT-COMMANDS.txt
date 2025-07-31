@@ -1,0 +1,140 @@
+================================================================================
+🚀 4 SECRETS WEDDING - QUICK DEPLOYMENT COMMANDS
+================================================================================
+
+📋 STEP 1: PUSH TO GITHUB (Run locally)
+========================================
+
+# Make scripts executable
+chmod +x push-to-github.sh deploy-to-digitalocean.sh
+
+# Push code to GitHub (without .env file)
+./push-to-github.sh
+
+# What this does:
+# ✅ Protects .env file from being pushed
+# ✅ Commits all code to GitHub
+# ✅ Ensures Firebase credentials stay secure
+# ✅ Creates .env.example template
+
+================================================================================
+📋 STEP 2: DEPLOY ON DIGITALOCEAN (Run on server)
+==================================================
+
+# SSH into your DigitalOcean server
+ssh root@YOUR_SERVER_IP
+
+# Download and run deployment script
+curl -O https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/deploy-to-digitalocean.sh
+chmod +x deploy-to-digitalocean.sh
+sudo ./deploy-to-digitalocean.sh
+
+# What this does:
+# 🔧 Installs Node.js 18 and PM2
+# 📥 Clones repository from GitHub
+# 📦 Installs all dependencies
+# 🔐 Creates .env with Firebase credentials
+# 🔥 Configures Firebase Admin SDK
+# 🚀 Starts app with PM2 on port 3001 (Direct access, no nginx)
+# 🛡️ Configures firewall
+# 🧪 Tests deployment
+
+================================================================================
+📋 STEP 3: TEST DEPLOYMENT
+===========================
+
+# Health check
+curl http://YOUR_SERVER_IP:3001/health
+
+# Firebase status
+curl http://YOUR_SERVER_IP:3001/api/notifications/status
+
+# Test push notification
+curl -X POST http://YOUR_SERVER_IP:3001/api/notifications/send \
+  -H 'Content-Type: application/json' \
+  -d '{"token":"YOUR_FCM_TOKEN","title":"Test","body":"Hello from DigitalOcean!"}'
+
+# Test wedding invitation
+curl -X POST http://YOUR_SERVER_IP:3001/api/notifications/wedding-invitation \
+  -H 'Content-Type: application/json' \
+  -d '{"token":"YOUR_FCM_TOKEN","inviterName":"Sarah & Michael","weddingDate":"2024-08-15"}'
+
+================================================================================
+📋 STEP 4: MANAGE APPLICATION
+==============================
+
+# View PM2 status
+pm2 status
+
+# View logs
+pm2 logs 4secrets-wedding-api
+
+# Restart application
+pm2 restart 4secrets-wedding-api
+
+# Stop application
+pm2 stop 4secrets-wedding-api
+
+# Update from GitHub
+cd /var/www/4secrets-wedding-api
+git pull origin main
+npm install
+pm2 restart 4secrets-wedding-api
+
+================================================================================
+📱 MOBILE APP CONFIGURATION
+============================
+
+# Update your Flutter app to use production server
+const String API_BASE_URL = 'http://YOUR_SERVER_IP:3000';
+
+# Test endpoints:
+# - Health: $API_BASE_URL/health
+# - Notifications: $API_BASE_URL/api/notifications/status
+# - Email: $API_BASE_URL/api/email/status
+# - Images: $API_BASE_URL/api/images
+
+================================================================================
+🔧 FIREBASE CONFIGURATION INCLUDED
+===================================
+
+✅ Project ID: secrets-wedding
+✅ Service Account: firebase-adminsdk-fbsvc@secrets-wedding.iam.gserviceaccount.com
+✅ All Firebase credentials automatically configured
+✅ Real push notifications enabled
+✅ German wedding templates active
+
+================================================================================
+🎯 EXPECTED RESULTS
+===================
+
+After successful deployment:
+
+✅ Server running on port 3000 (Direct access, no nginx)
+✅ Firebase push notifications working
+✅ Email API functional
+✅ Image upload API working
+✅ PM2 process management active
+✅ Auto-restart on crashes
+✅ Firewall configured
+✅ Health monitoring active
+
+Your 4 Secrets Wedding API will be live at:
+http://YOUR_SERVER_IP:3000
+
+Ready for mobile app integration! 🔔💍✨
+
+================================================================================
+🆘 TROUBLESHOOTING
+==================
+
+If something goes wrong:
+
+1. Check PM2 status: pm2 status
+2. View logs: pm2 logs 4secrets-wedding-api
+3. Check Firebase: curl http://localhost:3000/api/notifications/status
+4. Restart app: pm2 restart 4secrets-wedding-api
+5. Check firewall: ufw status
+6. Check port: netstat -tlnp | grep 3000
+
+================================================================================

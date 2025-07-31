@@ -1,0 +1,34 @@
+{
+  "name": "wedding-email-service",
+  "version": "1.0.0",
+  "description": "4 Secrets Wedding Email Service - Cloud Function",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.8",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "wedding",
+    "email",
+    "cloud-function",
+    "smtp",
+    "nodemailer"
+  ],
+  "author": "4 Secrets Wedding Team",
+  "license": "MIT"
+}

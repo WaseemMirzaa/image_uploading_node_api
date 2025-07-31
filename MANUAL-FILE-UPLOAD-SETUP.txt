@@ -1,0 +1,241 @@
+🔧 MANUAL File Upload Setup for DigitalOcean Server
+==================================================
+
+If the automated scripts are not working, here's a manual approach:
+
+STEP 1: Install Dependencies
+---------------------------
+npm install multer --save
+
+STEP 2: Create Files Directory
+-----------------------------
+mkdir -p src/files
+chmod 755 src/files
+
+STEP 3: Backup Your Server File
+------------------------------
+cp digitalocean-server.js digitalocean-server.js.backup
+
+STEP 4: Add File Upload Code
+---------------------------
+
+Open digitalocean-server.js in a text editor (nano, vim, etc.):
+nano digitalocean-server.js
+
+Then add the following code manually:
+
+A) Add multer import (after other requires):
+const multer = require('multer');
+
+B) Add file upload configuration (after require('dotenv').config();):
+
+// File upload configuration
+const uploadPath = process.env.UPLOAD_PATH || 'src/files';
+const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || 10485760); // 10MB
+
+// Ensure upload directory exists
+const fs = require('fs');
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+    console.log('✅ Upload directory created:', uploadPath);
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp|pdf|doc|docx|txt|xls|xlsx|ppt|pptx|zip|rar|mp4|mp3|avi|mov/;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isValidType = allowedTypes.test(ext);
+    
+    const allowedMimeTypes = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/zip', 'application/x-rar-compressed', 'video/mp4', 'video/avi', 'video/quicktime',
+        'audio/mpeg', 'audio/mp3'
+    ];
+    
+    const isValidMime = allowedMimeTypes.includes(file.mimetype);
+    
+    if (isValidType || isValidMime) {
+        cb(null, true);
+    } else {
+        cb(new Error(`Invalid file type: ${file.originalname}`));
+    }
+};
+
+const upload = multer({
+    storage,
+    limits: { fileSize: maxFileSize },
+    fileFilter
+});
+
+C) Add static file serving (after app.use(express.urlencoded({ extended: true }));):
+app.use('/files', express.static(uploadPath));
+
+D) Add file upload endpoints (before app.listen or before // 404 handler):
+
+// ==========================================
+// FILE UPLOAD ENDPOINTS
+// ==========================================
+
+// Upload file endpoint
+app.post('/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file provided' });
+        }
+
+        const fileData = {
+            filename: req.file.filename,
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+            url: `/files/${req.file.filename}`
+        };
+        
+        console.log(`📁 File uploaded: ${req.file.filename}`);
+        
+        return res.status(201).json({
+            message: 'File uploaded successfully',
+            file: fileData
+        });
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        return res.status(500).json({ error: 'Failed to upload file' });
+    }
+});
+
+// Get files list endpoint
+app.get('/files', async (req, res) => {
+    try {
+        const files = fs.readdirSync(uploadPath).filter(file => !file.startsWith('.'));
+        const fileList = files.map(filename => {
+            const ext = path.extname(filename).toLowerCase();
+            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+            
+            return {
+                filename,
+                url: `/files/${filename}`,
+                type: isImage ? 'image' : 'file',
+                extension: ext
+            };
+        });
+        
+        return res.status(200).json({ files: fileList });
+    } catch (error) {
+        console.error('Error listing files:', error);
+        return res.status(500).json({ error: 'Failed to retrieve files' });
+    }
+});
+
+// Delete file endpoint
+app.delete('/files/delete', async (req, res) => {
+    try {
+        const { file_url } = req.body;
+        
+        if (!file_url) {
+            return res.status(400).json({ error: 'File URL is required' });
+        }
+        
+        const filename = path.basename(file_url);
+        const filePath = path.join(uploadPath, filename);
+        
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+        
+        fs.unlinkSync(filePath);
+        console.log(`🗑️ File deleted: ${filename}`);
+        
+        return res.status(200).json({ message: 'File deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        return res.status(500).json({ error: 'Failed to delete file' });
+    }
+});
+
+// File upload status endpoint
+app.get('/api/files/status', (req, res) => {
+    try {
+        const files = fs.readdirSync(uploadPath).filter(file => !file.startsWith('.'));
+        res.json({
+            service: 'File Upload API',
+            status: 'ready',
+            uploadPath: uploadPath,
+            maxFileSize: maxFileSize,
+            allowedTypes: ['Images', 'PDFs', 'Documents', 'Videos', 'Audio'],
+            totalFiles: files.length
+        });
+    } catch (error) {
+        res.json({
+            service: 'File Upload API',
+            status: 'ready',
+            uploadPath: uploadPath,
+            maxFileSize: maxFileSize,
+            allowedTypes: ['Images', 'PDFs', 'Documents', 'Videos', 'Audio'],
+            totalFiles: 0
+        });
+    }
+});
+
+STEP 5: Update Environment File (Optional)
+-----------------------------------------
+If you have a .env file, add these lines:
+
+# File Upload Configuration
+UPLOAD_PATH=src/files
+MAX_FILE_SIZE=10485760
+
+STEP 6: Restart Server
+---------------------
+pm2 restart 4secrets-wedding-api
+
+STEP 7: Test the New Endpoints
+-----------------------------
+
+# Test file upload status
+curl http://your-server-ip:3001/api/files/status
+
+# Test file upload
+curl -X POST -F "file=@test.pdf" http://your-server-ip:3001/upload
+
+# Test file list
+curl http://your-server-ip:3001/files
+
+# Test existing APIs still work
+curl http://your-server-ip:3001/health
+curl http://your-server-ip:3001/api/email/status
+curl http://your-server-ip:3001/api/notifications/status
+
+NEW ENDPOINTS ADDED:
+-------------------
+POST   /upload                    - Upload any file
+GET    /files                     - List all files
+DELETE /files/delete              - Delete a file
+GET    /api/files/status          - File API status
+
+FILE ACCESS:
+-----------
+http://your-server-ip:3001/files/[filename]
+
+SUPPORTED FILE TYPES:
+--------------------
+- Images: JPEG, PNG, GIF, WEBP
+- Documents: PDF, DOC, DOCX, TXT, XLS, XLSX, PPT, PPTX
+- Archives: ZIP, RAR
+- Media: MP4, MP3, AVI, MOV
+- Max size: 10MB
+
+This manual approach ensures you have full control and can see exactly what's being added!

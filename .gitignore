@@ -1,0 +1,29 @@
+node_modules/
+.env
+.env.local
+src/images/*
+!src/images/.gitkeep
+logs/
+*.log
+
+# PM2 files
+.pm2/
+ecosystem.config.js.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Deployment scripts with secrets (create these on server)
+*-with-secrets.sh
+*-real-credentials.*
+*.production.*
+.env.production
+firebase-service-account.production.json
+
+# Note: firebase-service-account.json and .env are included
+# but with placeholder values for deployment template

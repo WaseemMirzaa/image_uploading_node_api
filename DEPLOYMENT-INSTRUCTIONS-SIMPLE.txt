@@ -1,0 +1,106 @@
+================================================================================
+4 SECRETS WEDDING - SIMPLE DEPLOYMENT INSTRUCTIONS
+================================================================================
+
+🚀 QUICK DEPLOYMENT ON DIGITALOCEAN
+
+1. SSH into your DigitalOcean server:
+   ssh root@164.92.175.72
+
+2. Create the deployment script:
+   nano deploy.sh
+
+3. Copy and paste the ENTIRE content from COMPLETE-DEPLOYMENT-SCRIPT.txt
+
+4. Save and exit (Ctrl+X, Y, Enter)
+
+5. Make executable and run:
+   chmod +x deploy.sh
+   ./deploy.sh
+
+6. Wait for deployment to complete (5-10 minutes)
+
+7. Test your APIs:
+   curl http://164.92.175.72:3001/health
+   curl http://164.92.175.72:3001/api/email/status
+   curl http://164.92.175.72:3001/api/images
+
+================================================================================
+📱 UPDATE YOUR MOBILE APP
+================================================================================
+
+Change your app's base URL to:
+http://164.92.175.72:3001
+
+All API endpoints:
+- Health: http://164.92.175.72:3001/health
+- Email Status: http://164.92.175.72:3001/api/email/status
+- Send Invitation: http://164.92.175.72:3001/api/email/send-invitation
+- Send Declined: http://164.92.175.72:3001/api/email/declined-invitation
+- Send Revoked: http://164.92.175.72:3001/api/email/revoke-access
+- Send Custom: http://164.92.175.72:3001/api/email/send-custom
+- Send Welcome: http://164.92.175.72:3001/api/email/send-welcome
+- Get Emails: http://164.92.175.72:3001/api/email/sent
+- Upload PDF: http://164.92.175.72:3001/api/images/upload
+- Get PDFs: http://164.92.175.72:3001/api/images
+- Delete PDF: http://164.92.175.72:3001/api/images/delete
+
+================================================================================
+🧪 TEST EMAIL SENDING
+================================================================================
+
+curl -X POST http://164.92.175.72:3001/api/email/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{"email": "m.waseemmirzaa@gmail.com", "inviterName": "Production Test"}'
+
+================================================================================
+🔧 MANAGEMENT COMMANDS
+================================================================================
+
+Check status:     pm2 status
+View logs:        pm2 logs wedding-email-3001
+Restart service:  pm2 restart wedding-email-3001
+Stop service:     pm2 stop wedding-email-3001
+
+================================================================================
+✅ WHAT THIS DEPLOYMENT INCLUDES
+================================================================================
+
+📧 Email Service (Brevo API):
+- Wedding invitations (German)
+- Declined notifications (German)
+- Access revoked alerts (German)
+- Custom emails
+- Welcome emails (German)
+- Email tracking and history
+
+📄 PDF Upload Service:
+- Upload PDFs (.pdf files only)
+- Get all PDFs
+- Delete PDFs
+- Previous PDF replacement
+- 10MB file size limit
+
+🔒 Security:
+- Helmet.js security headers
+- CORS enabled
+- Input validation
+- Error handling
+
+🚀 Production Ready:
+- PM2 process manager
+- Auto-restart on crash
+- Logging with Winston
+- Firewall configured
+- Port 3001 (no conflicts)
+
+================================================================================
+🎉 READY FOR PRODUCTION!
+================================================================================
+
+Your 4 Secrets Wedding API is now running on:
+http://164.92.175.72:3001
+
+Both email and image upload services are working and ready for your mobile app!
+
+================================================================================

@@ -1,0 +1,261 @@
+================================================================================
+4 SECRETS WEDDING - PDF API DOCUMENTATION (UPDATED)
+================================================================================
+
+🌐 Server Base URL: http://164.92.175.72:3001
+📧 Email Service: Brevo API
+📄 PDF Service: Multer PDF Upload (10MB limit)
+🚀 Port: 3001 (Direct Access - No Nginx)
+
+================================================================================
+📋 IMPORTANT CHANGES
+================================================================================
+
+✅ CHANGED: Image upload APIs now handle PDF files only
+✅ SAME URLs: All API endpoints remain the same for compatibility
+✅ PDF ONLY: Only .pdf files are accepted (10MB limit)
+✅ SAME RESPONSE: Response format unchanged for frontend compatibility
+
+================================================================================
+📄 PDF UPLOAD APIs (SAME URLS, PDF FILES ONLY)
+================================================================================
+
+3.1 UPLOAD PDF
+---------------
+curl -X POST http://164.92.175.72:3001/api/images/upload \
+  -F "image=@/path/to/your/document.pdf"
+
+# With previous PDF replacement:
+curl -X POST http://164.92.175.72:3001/api/images/upload \
+  -F "image=@/path/to/new/document.pdf" \
+  -F "previous_image_url=/images/old-document-123456789.pdf"
+
+REQUEST:
+- Method: POST
+- Content-Type: multipart/form-data
+- Body: 
+  - image: File (required) - PDF file only (.pdf extension)
+  - previous_image_url: String (optional) - URL of previous PDF to delete
+
+FILE RESTRICTIONS:
+- File Type: PDF only (.pdf extension)
+- MIME Type: application/pdf
+- Max Size: 10MB (increased from 5MB for PDFs)
+
+SUCCESS RESPONSE:
+{
+  "message": "PDF uploaded successfully",
+  "image": {
+    "id": "1720551330123",
+    "filename": "image-1720551330123-987654321.pdf",
+    "originalname": "wedding-document.pdf",
+    "mimetype": "application/pdf",
+    "size": 2048000,
+    "path": "/var/www/wedding-email-3001/src/pdfs/image-1720551330123-987654321.pdf",
+    "url": "/images/image-1720551330123-987654321.pdf",
+    "timestamp": "2025-07-09T19:15:30.123Z"
+  }
+}
+
+ERROR RESPONSE (Invalid File Type):
+{
+  "error": "Invalid file type. Only PDF files are allowed.",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+3.2 GET ALL PDFS
+----------------
+curl http://164.92.175.72:3001/api/images
+
+RESPONSE:
+{
+  "success": true,
+  "count": 2,
+  "images": [
+    {
+      "filename": "image-1720551330123-987654321.pdf",
+      "url": "/images/image-1720551330123-987654321.pdf",
+      "path": "/var/www/wedding-email-3001/src/pdfs/image-1720551330123-987654321.pdf"
+    },
+    {
+      "filename": "image-1720551330124-987654322.pdf",
+      "url": "/images/image-1720551330124-987654322.pdf",
+      "path": "/var/www/wedding-email-3001/src/pdfs/image-1720551330124-987654322.pdf"
+    }
+  ],
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+3.3 DELETE PDF
+--------------
+curl -X DELETE http://164.92.175.72:3001/api/images/delete \
+  -H "Content-Type: application/json" \
+  -d '{
+    "imageUrl": "/images/image-1720551330123-987654321.pdf"
+  }'
+
+REQUEST BODY:
+{
+  "imageUrl": "string (required)"
+}
+
+SUCCESS RESPONSE:
+{
+  "success": true,
+  "message": "PDF deleted successfully",
+  "deletedImage": "/images/image-1720551330123-987654321.pdf",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+3.4 VIEW/DOWNLOAD PDF
+---------------------
+curl http://164.92.175.72:3001/images/image-1720551330123-987654321.pdf
+
+# Or open in browser:
+# http://164.92.175.72:3001/images/image-1720551330123-987654321.pdf
+
+RESPONSE: Binary PDF data (application/pdf)
+
+================================================================================
+📱 MOBILE APP INTEGRATION (NO CHANGES NEEDED)
+================================================================================
+
+Your existing mobile app code will work without changes!
+Only the file type restriction has changed to PDF only.
+
+// Upload PDF (same code, just use PDF files)
+const uploadPDF = async (pdfFile, previousPdfUrl = null) => {
+  const formData = new FormData();
+  formData.append('image', pdfFile); // Keep 'image' field name for compatibility
+  if (previousPdfUrl) {
+    formData.append('previous_image_url', previousPdfUrl);
+  }
+
+  const response = await fetch('http://164.92.175.72:3001/api/images/upload', {
+    method: 'POST',
+    body: formData
+  });
+  return await response.json();
+};
+
+// Get All PDFs (same code)
+const getAllPDFs = async () => {
+  const response = await fetch('http://164.92.175.72:3001/api/images');
+  return await response.json();
+};
+
+// Delete PDF (same code)
+const deletePDF = async (pdfUrl) => {
+  const response = await fetch('http://164.92.175.72:3001/api/images/delete', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      imageUrl: pdfUrl // Keep 'imageUrl' field name for compatibility
+    })
+  });
+  return await response.json();
+};
+
+// Get PDF URL for Display/Download
+const getPDFUrl = (filename) => {
+  return `http://164.92.175.72:3001/images/${filename}`;
+};
+
+================================================================================
+🧪 TESTING COMMANDS
+================================================================================
+
+# Health Check
+curl http://164.92.175.72:3001/health
+
+# PDF Service Status
+curl http://164.92.175.72:3001/api/email/status
+
+# Upload PDF Test (create a test PDF first)
+echo "%PDF-1.4 Test PDF content" > test-document.pdf
+curl -X POST http://164.92.175.72:3001/api/images/upload \
+  -F "image=@test-document.pdf"
+
+# Get All PDFs
+curl http://164.92.175.72:3001/api/images
+
+# Send Test Email
+curl -X POST http://164.92.175.72:3001/api/email/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{"email": "m.waseemmirzaa@gmail.com", "inviterName": "PDF Service Test"}'
+
+================================================================================
+🔧 ERROR HANDLING
+================================================================================
+
+INVALID FILE TYPE (400):
+{
+  "error": "Invalid file type. Only PDF files are allowed.",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+NO FILE PROVIDED (400):
+{
+  "error": "No PDF file provided",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+FILE TOO LARGE (400):
+{
+  "error": "File too large. Maximum size is 10MB.",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+PDF NOT FOUND (404):
+{
+  "error": "PDF not found",
+  "message": "No PDF found with URL: /images/nonexistent.pdf",
+  "timestamp": "2025-07-09T19:15:30.123Z"
+}
+
+================================================================================
+📊 DEPLOYMENT CHANGES
+================================================================================
+
+✅ File Storage: /var/www/wedding-email-3001/src/pdfs/
+✅ File Types: PDF only (.pdf extension)
+✅ MIME Type: application/pdf only
+✅ Max Size: 10MB (increased for PDFs)
+✅ URLs: Same as before (/images/filename.pdf)
+✅ API Endpoints: No changes to URLs
+✅ Response Format: No changes for compatibility
+
+================================================================================
+🎯 SUMMARY
+================================================================================
+
+WHAT CHANGED:
+- ✅ File type restriction: PDF only
+- ✅ File size limit: Increased to 10MB
+- ✅ Storage location: src/pdfs/ instead of src/images/
+- ✅ Error messages: Updated for PDF context
+
+WHAT STAYED THE SAME:
+- ✅ All API endpoint URLs
+- ✅ Request/response formats
+- ✅ Field names (image, imageUrl)
+- ✅ Mobile app integration code
+- ✅ Authentication and security
+
+================================================================================
+🚀 READY FOR PDF UPLOADS!
+================================================================================
+
+Your 4 Secrets Wedding API now handles PDF uploads exclusively while maintaining
+full compatibility with your existing mobile app code.
+
+Server: http://164.92.175.72:3001
+File Types: PDF only (.pdf)
+Max Size: 10MB
+Storage: /var/www/wedding-email-3001/src/pdfs/
+
+No mobile app changes required - just upload PDF files instead of images!
+
+================================================================================

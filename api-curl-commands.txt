@@ -1,0 +1,227 @@
+================================================================================
+4 SECRETS WEDDING API - CURL COMMANDS
+================================================================================
+
+Base URL: http://164.92.175.72:8080
+Status: ✅ ALL NON-EMAIL APIS WORKING PERFECTLY
+Email: 📧 Mailgun service ready for credentials
+
+================================================================================
+HEALTH CHECK API
+================================================================================
+
+# Check server health status
+curl http://164.92.175.72:8080/health
+
+Expected Response:
+{
+  "status": "ok"
+}
+
+================================================================================
+EMAIL APIs
+================================================================================
+
+# 1. Get Email Service Status
+curl http://164.92.175.72:8080/api/email/status
+
+Expected Response:
+{
+  "service": "Email API",
+  "status": "connected",
+  "environment": "production",
+  "configured": {
+    "emailUser": true,
+    "emailFrom": true
+  }
+}
+
+# 2. Send Custom Email
+curl -X POST http://164.92.175.72:8080/api/email/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "unicorndev.02.1997@gmail.com",
+    "subject": "Test Email from API",
+    "message": "This is a test email sent via the API.",
+    "from": "4secrets-wedding@gmx.de"
+  }'
+
+# 3. Send Wedding Invitation Email
+curl -X POST http://164.92.175.72:8080/api/email/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "unicorndev.02.1997@gmail.com",
+    "inviterName": "Adil"
+  }'
+
+# 4. Send Declined Invitation Email
+curl -X POST http://164.92.175.72:8080/api/email/declined-invitation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "m.waseemmirzaa@gmail.com",
+    "declinerName": "Waseem"
+  }'
+
+# 5. Send Revoked Access Email
+curl -X POST http://164.92.175.72:8080/api/email/revoke-access \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "unicorndev.02.1997@gmail.com",
+    "inviterName": "Adil"
+  }'
+
+# 6. Test Email Connection
+curl http://164.92.175.72:8080/api/email/test
+
+# 7. View All Sent Emails (Debug)
+curl http://164.92.175.72:8080/api/email/sent
+
+# 8. Preview Specific Email (Debug)
+curl http://164.92.175.72:8080/api/email/preview/EMAIL_ID
+
+================================================================================
+IMAGE APIs
+================================================================================
+
+# 1. Upload Image
+curl -X POST http://164.92.175.72:8080/api/images/upload \
+  -F "image=@/path/to/your/image.jpg"
+
+# Example with actual file:
+# curl -X POST http://164.92.175.72:8080/api/images/upload \
+#   -F "image=@./wedding-photo.jpg"
+
+Expected Response:
+{
+  "message": "Image uploaded successfully",
+  "image": {
+    "filename": "1234567890-wedding-photo.jpg",
+    "originalname": "wedding-photo.jpg",
+    "mimetype": "image/jpeg",
+    "size": 1024000,
+    "path": "src/images/1234567890-wedding-photo.jpg",
+    "url": "/images/1234567890-wedding-photo.jpg"
+  }
+}
+
+# 2. Upload Image with Previous Image Replacement
+curl -X POST http://164.92.175.72:8080/api/images/upload \
+  -F "image=@/path/to/new/image.jpg" \
+  -F "previous_image_url=/images/old-image.jpg"
+
+# 3. Get List of All Images
+curl http://164.92.175.72:8080/api/images
+
+Expected Response:
+{
+  "images": [
+    {
+      "filename": "1234567890-wedding-photo.jpg",
+      "url": "/images/1234567890-wedding-photo.jpg"
+    },
+    {
+      "filename": "0987654321-couple-photo.jpg",
+      "url": "/images/0987654321-couple-photo.jpg"
+    }
+  ]
+}
+
+# 4. Delete Image
+curl -X DELETE http://164.92.175.72:8080/api/images/delete \
+  -H "Content-Type: application/json" \
+  -d '{
+    "image_url": "/images/1234567890-wedding-photo.jpg"
+  }'
+
+Expected Response:
+{
+  "message": "Image deleted successfully"
+}
+
+# 5. View Image (Direct URL)
+# Open in browser or use curl to download:
+curl http://164.92.175.72:8080/images/1234567890-wedding-photo.jpg -o downloaded-image.jpg
+
+================================================================================
+TESTING SCRIPTS
+================================================================================
+
+# Complete API Test Script
+#!/bin/bash
+echo "Testing 4 Secrets Wedding API..."
+
+BASE_URL="http://164.92.175.72:8080"
+
+echo "1. Testing Health Check..."
+curl -s $BASE_URL/health | jq '.'
+
+echo -e "\n2. Testing Email Status..."
+curl -s $BASE_URL/api/email/status | jq '.'
+
+echo -e "\n3. Testing Invitation Email..."
+curl -s -X POST $http://164.92.175.72:8080/api/email/send-invitation \
+  -H "Content-Type: application/json" \
+  -d '{"email": "unicorndev.02.1997@gmail.com", "inviterName": "Test User"}' | jq '.'
+
+echo -e "\n4. Testing Image List..."
+curl -s $BASE_URL/api/images | jq '.'
+
+echo -e "\n5. Testing Sent Emails..."
+curl -s $BASE_URL/api/email/sent | jq '.'
+
+echo -e "\nAPI Testing Complete!"
+
+================================================================================
+ERROR RESPONSES
+================================================================================
+
+# Common Error Responses:
+
+# 400 Bad Request - Missing Fields
+{
+  "error": "Missing required fields",
+  "required": ["email", "inviterName"],
+  "received": ["email"]
+}
+
+# 400 Bad Request - Invalid Email
+{
+  "error": "Invalid email format",
+  "email": "invalid-email"
+}
+
+# 404 Not Found - Image Not Found
+{
+  "error": "Image not found"
+}
+
+# 500 Internal Server Error
+{
+  "error": "Failed to send email",
+  "message": "Connection timeout"
+}
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Email APIs:
+- POST /api/email/send                 - Send custom email
+- POST /api/email/send-invitation      - Send wedding invitation
+- POST /api/email/declined-invitation  - Send declined invitation
+- POST /api/email/revoke-access        - Send revoked access
+- GET  /api/email/status               - Get email service status
+- GET  /api/email/test                 - Test email connection
+- GET  /api/email/sent                 - View sent emails
+- GET  /api/email/preview/:id          - Preview email
+
+Image APIs:
+- POST   /api/images/upload            - Upload image
+- GET    /api/images                   - List all images
+- DELETE /api/images/delete            - Delete image
+- GET    /images/:filename             - View/download image
+
+Health:
+- GET /health                          - Server health check
+
+================================================================================

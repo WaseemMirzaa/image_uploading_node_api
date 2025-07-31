@@ -1,0 +1,20 @@
+image-upload-api/
+├── src/
+│   ├── config/
+│   │   └── index.js
+│   ├── controllers/
+│   │   └── imageController.js
+│   ├── middleware/
+│   │   └── upload.js
+│   ├── routes/
+│   │   └── imageRoutes.js
+│   ├── services/
+│   │   └── imageService.js
+│   ├── utils/
+│   │   └── logger.js
+│   └── app.js
+├── .env
+├── .env.example
+├── .gitignore
+├── package.json
+└── server.js

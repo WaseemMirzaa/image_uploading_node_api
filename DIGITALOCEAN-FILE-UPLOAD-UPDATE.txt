@@ -1,0 +1,114 @@
+🚀 DigitalOcean Server File Upload Update
+========================================
+
+QUICK UPDATE COMMAND (Copy and paste this on your DigitalOcean server):
+-----------------------------------------------------------------------
+
+curl -fsSL https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/update-server-with-file-upload.sh | bash
+
+OR MANUAL STEPS:
+---------------
+
+1. SSH into your DigitalOcean server
+2. Navigate to your project directory (where digitalocean-server.js is located)
+3. Run the update script:
+
+   wget https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/update-server-with-file-upload.sh
+   chmod +x update-server-with-file-upload.sh
+   ./update-server-with-file-upload.sh
+
+WHAT THIS UPDATE ADDS:
+---------------------
+
+✅ Complete File Upload API:
+   - Upload any file type (images, PDFs, documents, videos, audio)
+   - Maximum file size: 10MB
+   - Upload directory: src/files
+   - Backward compatibility with existing image endpoints
+
+✅ New Endpoints:
+   POST   /upload                    - Upload any file
+   GET    /files                     - List all files
+   DELETE /files/delete              - Delete any file
+   GET    /api/files/status          - File API status
+
+✅ Legacy Endpoints (still work):
+   POST   /upload-image              - Upload images only
+   GET    /images                    - List images only
+   DELETE /images/delete             - Delete images
+   GET    /api/images/status         - Image API status
+
+✅ File Access URLs:
+   /files/[filename]                 - Access any file
+   /images/[filename]                - Access files (backward compatibility)
+
+✅ Supported File Types:
+   - Images: JPEG, PNG, GIF, WEBP
+   - Documents: PDF, DOC, DOCX, TXT, XLS, XLSX, PPT, PPTX
+   - Archives: ZIP, RAR
+   - Media: MP4, MP3, AVI, MOV
+
+TESTING THE UPDATE:
+------------------
+
+After running the update, test with:
+
+1. Check file upload status:
+   curl http://your-server-ip:3001/api/files/status
+
+2. Upload a file:
+   curl -X POST -F "file=@your-file.pdf" http://your-server-ip:3001/upload
+
+3. List files:
+   curl http://your-server-ip:3001/files
+
+4. Access uploaded file:
+   http://your-server-ip:3001/files/[filename]
+
+EXAMPLE USAGE:
+-------------
+
+# Upload an image
+curl -X POST -F "file=@photo.jpg" http://your-server:3001/upload
+
+# Upload a PDF
+curl -X POST -F "file=@document.pdf" http://your-server:3001/upload
+
+# Upload a video
+curl -X POST -F "file=@video.mp4" http://your-server:3001/upload
+
+# Get list of all files
+curl http://your-server:3001/files
+
+# Delete a file
+curl -X DELETE -H "Content-Type: application/json" \
+     -d '{"file_url":"/files/filename.pdf"}' \
+     http://your-server:3001/files/delete
+
+BACKWARD COMPATIBILITY:
+----------------------
+
+All your existing image upload functionality will continue to work:
+- POST /upload-image (for images only)
+- GET /images (lists only images)
+- DELETE /images/delete (deletes images)
+- /images/[filename] URLs still work
+
+TROUBLESHOOTING:
+---------------
+
+If the update fails:
+1. Check that you're in the correct directory (where digitalocean-server.js exists)
+2. Ensure you have internet access to download the update
+3. Check PM2 status: pm2 status
+4. View logs: pm2 logs 4secrets-wedding-api
+5. Restart manually: pm2 restart 4secrets-wedding-api
+
+The script creates a backup (digitalocean-server.js.backup) before updating.
+
+ROLLBACK (if needed):
+--------------------
+
+If something goes wrong, restore the backup:
+mv digitalocean-server.js.backup digitalocean-server.js
+pm2 restart 4secrets-wedding-api

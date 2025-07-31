@@ -1,0 +1,157 @@
+🚀 4 Secrets Wedding API - Complete Deployment Instructions
+==========================================================
+
+QUICK DEPLOYMENT (One Command):
+------------------------------
+
+SSH into your DigitalOcean server and run:
+
+curl -fsSL https://raw.githubusercontent.com/WaseemMirzaa/four_wedding_app_cloud_function/main/complete-deployment-script.sh | bash
+
+WHAT THIS DOES:
+--------------
+
+✅ Clones the repository to /root/4secrets-wedding-api
+✅ Installs all dependencies (Node.js, PM2, project packages)
+✅ Creates environment files with placeholder credentials
+✅ Creates required directories (logs, src/files)
+✅ Starts the application with PM2
+✅ Tests all API endpoints
+
+AFTER DEPLOYMENT - UPDATE CREDENTIALS:
+------------------------------------
+
+1. Navigate to project directory:
+   cd /root/4secrets-wedding-api
+
+2. Update .env file with your actual credentials:
+   nano .env
+   
+   Update these lines:
+   BREVO_API_KEY=your-actual-brevo-api-key
+   EMAIL_FROM=your-verified-sender-email
+   FIREBASE_PROJECT_ID=your-firebase-project-id
+
+3. Update Firebase credentials:
+   nano firebase-service-account.json
+   
+   Replace with your actual Firebase service account JSON
+
+4. Restart the server:
+   pm2 restart 4secrets-wedding-api
+
+AVAILABLE APIs:
+--------------
+
+🌐 Health & Status:
+   GET  http://your-server:3001/health
+
+📧 Email APIs:
+   POST http://your-server:3001/api/email/send-invitation
+   POST http://your-server:3001/api/email/declined-invitation
+   POST http://your-server:3001/api/email/revoke-access
+   POST http://your-server:3001/api/email/send
+   GET  http://your-server:3001/api/email/status
+
+🔔 Notification APIs:
+   POST http://your-server:3001/api/notifications/send
+   POST http://your-server:3001/api/notifications/wedding-invitation
+   POST http://your-server:3001/api/notifications/task-reminder
+   GET  http://your-server:3001/api/notifications/status
+   GET  http://your-server:3001/api/notifications/test
+
+📁 File Upload APIs:
+   POST   http://your-server:3001/upload
+   GET    http://your-server:3001/files
+   DELETE http://your-server:3001/files/delete
+   GET    http://your-server:3001/api/files/status
+
+📸 Legacy Image APIs (backward compatibility):
+   POST   http://your-server:3001/api/images/upload
+   GET    http://your-server:3001/api/images
+   DELETE http://your-server:3001/api/images/delete
+   GET    http://your-server:3001/api/images/status
+
+FILE UPLOAD FEATURES:
+--------------------
+
+✅ Supported File Types:
+   - Images: JPEG, PNG, GIF, WEBP
+   - Documents: PDF, DOC, DOCX, TXT, XLS, XLSX, PPT, PPTX
+   - Archives: ZIP, RAR
+   - Media: MP4, MP3, AVI, MOV
+
+✅ File Access:
+   - Files: http://your-server:3001/files/[filename]
+   - Images: http://your-server:3001/images/[filename] (legacy)
+
+✅ Maximum file size: 10MB
+
+TESTING THE DEPLOYMENT:
+----------------------
+
+1. Test health check:
+   curl http://your-server-ip:3001/health
+
+2. Test file upload:
+   curl -X POST -F "file=@test.pdf" http://your-server-ip:3001/upload
+
+3. Test email status:
+   curl http://your-server-ip:3001/api/email/status
+
+4. Test notifications status:
+   curl http://your-server-ip:3001/api/notifications/status
+
+SERVER MANAGEMENT:
+-----------------
+
+View server status:
+   pm2 status
+
+View logs:
+   pm2 logs 4secrets-wedding-api
+
+Restart server:
+   pm2 restart 4secrets-wedding-api
+
+Stop server:
+   pm2 stop 4secrets-wedding-api
+
+TROUBLESHOOTING:
+---------------
+
+If deployment fails:
+1. Check internet connection
+2. Ensure you have root access
+3. Check available disk space: df -h
+4. View deployment logs for errors
+
+If APIs don't work after deployment:
+1. Check PM2 status: pm2 status
+2. View application logs: pm2 logs 4secrets-wedding-api
+3. Verify credentials are updated in .env and firebase-service-account.json
+4. Restart after updating credentials: pm2 restart 4secrets-wedding-api
+
+If file uploads don't work:
+1. Check directory permissions: ls -la src/files
+2. Ensure directory exists: mkdir -p src/files
+3. Check disk space: df -h
+
+SECURITY NOTES:
+--------------
+
+✅ The deployment script creates template files with placeholder credentials
+✅ You must manually update with your actual credentials
+✅ Never commit real credentials to version control
+✅ Use environment variables for sensitive data
+
+SUPPORT:
+-------
+
+If you encounter issues:
+1. Check the PM2 logs for detailed error messages
+2. Verify all credentials are correctly set
+3. Ensure your server has sufficient resources
+4. Check firewall settings for port 3001
+
+✅ Your 4 Secrets Wedding API will be running on port 3001 with complete functionality!

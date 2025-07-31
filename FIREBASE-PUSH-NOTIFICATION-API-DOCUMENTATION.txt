@@ -1,0 +1,534 @@
+================================================================================
+4 SECRETS WEDDING - FIREBASE PUSH NOTIFICATION API DOCUMENTATION
+================================================================================
+
+🔔 Service: Firebase Cloud Messaging (FCM)
+📱 Platform Support: Android & iOS
+🚀 Framework: Node.js Express with Firebase Admin SDK
+🌐 Base URL: http://localhost:3000 (Development) | http://164.92.175.72:8080 (Production)
+
+================================================================================
+📋 TABLE OF CONTENTS
+================================================================================
+
+1. OVERVIEW & SETUP
+2. ENVIRONMENT CONFIGURATION
+3. API ENDPOINTS DOCUMENTATION
+4. NOTIFICATION TYPES & TEMPLATES
+5. TOPIC MANAGEMENT
+6. MOBILE APP INTEGRATION
+7. ERROR HANDLING & RESPONSES
+8. TESTING & DEVELOPMENT
+9. DEPLOYMENT CONFIGURATION
+
+================================================================================
+1. OVERVIEW & SETUP
+================================================================================
+
+1.1 FIREBASE PUSH NOTIFICATION SERVICE
+---------------------------------------
+• Firebase Cloud Messaging (FCM) for real-time push notifications
+• Support for single device, multiple devices, and topic-based messaging
+• German language notification templates for wedding app
+• Mock service fallback when Firebase is not configured
+• Comprehensive logging and notification tracking
+
+1.2 NOTIFICATION FEATURES
+-------------------------
+• Wedding invitation notifications
+• Task reminder notifications
+• Collaboration notifications
+• General custom notifications
+• Topic subscription management
+• Rich notifications with images and custom data
+• Platform-specific configurations (Android/iOS)
+
+1.3 DEPENDENCIES INSTALLED
+---------------------------
+• firebase-admin: ^13.4.0 (Firebase Admin SDK)
+• express: ^5.1.0 (Web framework)
+• winston: ^3.17.0 (Logging)
+
+================================================================================
+2. ENVIRONMENT CONFIGURATION
+================================================================================
+
+2.1 FIREBASE SERVICE ACCOUNT (Option 1 - JSON Key)
+---------------------------------------------------
+FIREBASE_SERVICE_ACCOUNT_KEY='{
+  "type": "service_account",
+  "project_id": "your-project-id",
+  "private_key_id": "your-private-key-id",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com",
+  "client_id": "your-client-id",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/..."
+}'
+
+2.2 FIREBASE SERVICE ACCOUNT (Option 2 - Individual Fields)
+------------------------------------------------------------
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_PRIVATE_KEY_ID=your-private-key-id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_CLIENT_ID=your-client-id
+
+2.3 OPTIONAL CONFIGURATION
+---------------------------
+NODE_ENV=development|production
+PORT=3000
+
+================================================================================
+3. API ENDPOINTS DOCUMENTATION
+================================================================================
+
+3.1 GENERAL PUSH NOTIFICATION
+------------------------------
+POST /api/notifications/send
+
+Request Body:
+{
+  "token": "device_token_string",           // Single device (optional)
+  "tokens": ["token1", "token2", "..."],   // Multiple devices (optional)
+  "topic": "topic_name",                    // Topic subscribers (optional)
+  "title": "Notification Title",           // Required
+  "body": "Notification message body",     // Required
+  "data": {                                 // Optional custom data
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "imageUrl": "https://example.com/image.jpg", // Optional
+  "sound": "custom_sound.mp3",              // Optional (default: "default")
+  "badge": 1                                // Optional (iOS badge count)
+}
+
+Success Response:
+{
+  "success": true,
+  "message": "Push notification sent successfully",
+  "data": {
+    "messageId": "projects/your-project/messages/0:1234567890",
+    "recipients": 1,
+    "failed": 0,
+    "service": "Firebase Cloud Messaging",
+    "title": "Notification Title",
+    "body": "Notification message body"
+  }
+}
+
+3.2 WEDDING INVITATION NOTIFICATION
+------------------------------------
+POST /api/notifications/wedding-invitation
+
+Request Body:
+{
+  "token": "device_token_string",           // Target device/devices/topic
+  "inviterName": "John Doe",                // Required
+  "weddingDate": "2024-06-15"               // Optional
+}
+
+Notification Content:
+• Title: "Neue Hochzeitseinladung! 💍"
+• Body: "{inviterName} hat Sie zur Hochzeitsplanung eingeladen. Tippen Sie hier, um die Einladung anzunehmen."
+• Data: { type: "wedding_invitation", inviterName, weddingDate, action: "open_invitation" }
+• Sound: "wedding_bell.mp3"
+
+3.3 TASK REMINDER NOTIFICATION
+-------------------------------
+POST /api/notifications/task-reminder
+
+Request Body:
+{
+  "token": "device_token_string",           // Target device/devices/topic
+  "taskTitle": "Blumen bestellen",          // Required
+  "dueDate": "2024-05-20"                   // Optional
+}
+
+Notification Content:
+• Title: "Hochzeitsaufgabe fällig! 📋"
+• Body: "Erinnerung: \"{taskTitle}\" ist {dueDate ? `am ${dueDate} ` : ''}fällig."
+• Data: { type: "task_reminder", taskTitle, dueDate, action: "open_tasks" }
+• Sound: "reminder.mp3"
+
+3.4 COLLABORATION NOTIFICATION
+-------------------------------
+POST /api/notifications/collaboration
+
+Request Body:
+{
+  "token": "device_token_string",           // Target device/devices/topic
+  "collaboratorName": "Jane Smith",         // Required
+  "action": "joined"                        // Required: joined|left|completed_task|updated
+}
+
+Notification Content (varies by action):
+• joined: "Neuer Mitarbeiter! 👥" / "{collaboratorName} ist der Hochzeitsplanung beigetreten."
+• left: "Mitarbeiter verlassen 👋" / "{collaboratorName} hat die Hochzeitsplanung verlassen."
+• completed_task: "Aufgabe erledigt! ✅" / "{collaboratorName} hat eine Aufgabe abgeschlossen."
+• updated: "Hochzeitsplanung Update 💒" / "{collaboratorName} hat Änderungen vorgenommen."
+
+3.5 TOPIC SUBSCRIPTION MANAGEMENT
+----------------------------------
+POST /api/notifications/subscribe
+{
+  "token": "device_token_string",           // Required
+  "topic": "wedding_updates"                // Required
+}
+
+POST /api/notifications/unsubscribe
+{
+  "token": "device_token_string",           // Required
+  "topic": "wedding_updates"                // Required
+}
+
+3.6 SERVICE STATUS & MONITORING
+--------------------------------
+GET /api/notifications/status
+Response:
+{
+  "service": "Push Notification API",
+  "status": "connected|disconnected",
+  "environment": "development|production",
+  "configured": {
+    "firebaseProjectId": true,
+    "firebaseServiceAccount": true
+  },
+  "stats": {
+    "total": 25,
+    "sent": 23,
+    "failed": 2,
+    "successRate": "92.00%"
+  }
+}
+
+GET /api/notifications/test
+Response:
+{
+  "success": true,
+  "message": "Push notification service connection is working",
+  "service": "Firebase Cloud Messaging"
+}
+
+GET /api/notifications/sent
+Response:
+{
+  "success": true,
+  "count": 25,
+  "stats": { ... },
+  "notifications": [
+    {
+      "id": "notification-1234567890-abc123",
+      "messageId": "projects/your-project/messages/0:1234567890",
+      "title": "Neue Hochzeitseinladung! 💍",
+      "body": "John Doe hat Sie zur Hochzeitsplanung eingeladen...",
+      "recipients": 1,
+      "status": "sent",
+      "service": "Firebase Cloud Messaging",
+      "timestamp": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}
+
+GET /api/notifications/:id
+Response:
+{
+  "success": true,
+  "notification": {
+    "id": "notification-1234567890-abc123",
+    "messageId": "projects/your-project/messages/0:1234567890",
+    "title": "Neue Hochzeitseinladung! 💍",
+    "body": "John Doe hat Sie zur Hochzeitsplanung eingeladen...",
+    "data": {
+      "type": "wedding_invitation",
+      "inviterName": "John Doe",
+      "action": "open_invitation"
+    },
+    "recipients": 1,
+    "status": "sent",
+    "service": "Firebase Cloud Messaging",
+    "timestamp": "2024-01-15T10:30:00.000Z"
+  }
+}
+
+================================================================================
+4. NOTIFICATION TYPES & TEMPLATES
+================================================================================
+
+4.1 WEDDING INVITATION TEMPLATE
+--------------------------------
+Title: "Neue Hochzeitseinladung! 💍"
+Body: "{inviterName} hat Sie zur Hochzeitsplanung eingeladen. Tippen Sie hier, um die Einladung anzunehmen."
+Data: {
+  "type": "wedding_invitation",
+  "inviterName": "string",
+  "weddingDate": "string|null",
+  "action": "open_invitation"
+}
+Sound: "wedding_bell.mp3"
+Badge: 1
+
+4.2 TASK REMINDER TEMPLATE
+---------------------------
+Title: "Hochzeitsaufgabe fällig! 📋"
+Body: "Erinnerung: \"{taskTitle}\" ist {dueDate ? `am ${dueDate} ` : ''}fällig."
+Data: {
+  "type": "task_reminder",
+  "taskTitle": "string",
+  "dueDate": "string|null",
+  "action": "open_tasks"
+}
+Sound: "reminder.mp3"
+Badge: 1
+
+4.3 COLLABORATION TEMPLATES
+----------------------------
+• Joined: "Neuer Mitarbeiter! 👥" / "{collaboratorName} ist der Hochzeitsplanung beigetreten."
+• Left: "Mitarbeiter verlassen 👋" / "{collaboratorName} hat die Hochzeitsplanung verlassen."
+• Completed Task: "Aufgabe erledigt! ✅" / "{collaboratorName} hat eine Aufgabe abgeschlossen."
+• Updated: "Hochzeitsplanung Update 💒" / "{collaboratorName} hat Änderungen vorgenommen."
+
+Data: {
+  "type": "collaboration",
+  "collaboratorName": "string",
+  "action": "joined|left|completed_task|updated",
+  "action_target": "open_wedding_kit"
+}
+Sound: "collaboration.mp3"
+Badge: 1
+
+4.4 PLATFORM-SPECIFIC CONFIGURATIONS
+-------------------------------------
+Android:
+• Icon: "ic_notification"
+• Color: "#6B456A" (Wedding theme purple)
+• Channel ID: "wedding_notifications"
+• Priority: "high"
+• Click Action: "FLUTTER_NOTIFICATION_CLICK"
+
+iOS:
+• Sound: Custom or "default"
+• Badge: Configurable number
+• Content Available: 1 (for background processing)
+• Rich notifications with image support
+
+================================================================================
+5. TOPIC MANAGEMENT
+================================================================================
+
+5.1 PREDEFINED TOPICS
+----------------------
+• "wedding_updates" - General wedding planning updates
+• "task_reminders" - Task deadline reminders
+• "collaboration" - Team collaboration notifications
+• "invitations" - Wedding invitation notifications
+
+5.2 TOPIC NAMING CONVENTIONS
+-----------------------------
+• Use lowercase with underscores
+• Descriptive names (e.g., "wedding_123_updates")
+• User-specific topics (e.g., "user_456_notifications")
+
+5.3 SUBSCRIPTION MANAGEMENT
+----------------------------
+• Subscribe: POST /api/notifications/subscribe
+• Unsubscribe: POST /api/notifications/unsubscribe
+• Automatic topic management in mobile app
+• Bulk subscription/unsubscription support
+
+================================================================================
+6. MOBILE APP INTEGRATION
+================================================================================
+
+6.1 FLUTTER/ANDROID INTEGRATION
+--------------------------------
+// Initialize Firebase in your Flutter app
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Get device token
+String? token = await FirebaseMessaging.instance.getToken();
+
+// Send notification via API
+const response = await http.post(
+  Uri.parse('$API_BASE_URL/api/notifications/wedding-invitation'),
+  headers: {'Content-Type': 'application/json'},
+  body: jsonEncode({
+    'token': targetDeviceToken,
+    'inviterName': 'John Doe',
+    'weddingDate': '2024-06-15'
+  })
+);
+
+6.2 NOTIFICATION HANDLING
+--------------------------
+// Handle foreground notifications
+FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  // Handle notification when app is in foreground
+  if (message.data['type'] == 'wedding_invitation') {
+    // Navigate to invitation screen
+  }
+});
+
+// Handle notification tap
+FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+  // Handle notification tap when app is in background
+  String action = message.data['action'] ?? '';
+  switch (action) {
+    case 'open_invitation':
+      // Navigate to invitation screen
+      break;
+    case 'open_tasks':
+      // Navigate to tasks screen
+      break;
+    case 'open_wedding_kit':
+      // Navigate to wedding kit screen
+      break;
+  }
+});
+
+6.3 TOPIC SUBSCRIPTION
+-----------------------
+// Subscribe to topic
+await FirebaseMessaging.instance.subscribeToTopic('wedding_updates');
+
+// Unsubscribe from topic
+await FirebaseMessaging.instance.unsubscribeFromTopic('wedding_updates');
+
+================================================================================
+7. ERROR HANDLING & RESPONSES
+================================================================================
+
+7.1 HTTP STATUS CODES
+----------------------
+• 200: Success
+• 400: Bad Request (validation errors)
+• 404: Not Found (notification not found)
+• 500: Internal Server Error
+• 503: Service Unavailable (Firebase not configured)
+
+7.2 ERROR RESPONSE FORMAT
+--------------------------
+{
+  "error": "Error type",
+  "message": "Detailed error message",
+  "required": ["field1", "field2"],  // For validation errors
+  "received": ["field1"]             // For validation errors
+}
+
+7.3 COMMON ERRORS
+------------------
+Missing Target (400):
+{
+  "error": "Missing target",
+  "message": "At least one target must be provided: token, tokens, or topic"
+}
+
+Invalid Tokens (400):
+{
+  "error": "Invalid tokens",
+  "message": "tokens must be a non-empty array"
+}
+
+Firebase Not Configured (503):
+{
+  "success": false,
+  "message": "Push notification service connection failed",
+  "service": "Mock Service"
+}
+
+================================================================================
+8. TESTING & DEVELOPMENT
+================================================================================
+
+8.1 MOCK SERVICE MODE
+----------------------
+When Firebase is not configured, the service automatically falls back to mock mode:
+• Notifications are logged but not actually sent
+• All API endpoints work normally
+• Useful for development and testing
+• Clear console output indicates mock mode
+
+8.2 TESTING COMMANDS
+---------------------
+# Test service status
+curl http://localhost:3000/api/notifications/status
+
+# Test connection
+curl http://localhost:3000/api/notifications/test
+
+# Send test wedding invitation
+curl -X POST http://localhost:3000/api/notifications/wedding-invitation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "test_device_token_123",
+    "inviterName": "Test User"
+  }'
+
+# Send test general notification
+curl -X POST http://localhost:3000/api/notifications/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "test_device_token_123",
+    "title": "Test Notification",
+    "body": "This is a test notification"
+  }'
+
+8.3 DEVELOPMENT WORKFLOW
+-------------------------
+1. Start server: npm run dev
+2. Check service status: GET /api/notifications/status
+3. Configure Firebase credentials (optional for testing)
+4. Test with mock notifications
+5. Integrate with mobile app
+6. Test with real Firebase project
+
+================================================================================
+9. DEPLOYMENT CONFIGURATION
+================================================================================
+
+9.1 PRODUCTION ENVIRONMENT VARIABLES
+-------------------------------------
+# Add to your production .env file
+FIREBASE_PROJECT_ID=your-production-project-id
+FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
+NODE_ENV=production
+PORT=8080
+
+9.2 DIGITALOCEAN DEPLOYMENT
+----------------------------
+# Update deployment script to include Firebase environment variables
+export FIREBASE_PROJECT_ID="your-project-id"
+export FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
+
+# Restart service
+pm2 restart 4secrets-wedding-email
+
+9.3 SECURITY CONSIDERATIONS
+----------------------------
+• Store Firebase service account key securely
+• Use environment variables for sensitive data
+• Restrict Firebase project permissions
+• Monitor notification usage and costs
+• Implement rate limiting for API endpoints
+
+================================================================================
+🎉 FIREBASE PUSH NOTIFICATION API READY!
+================================================================================
+
+✅ Firebase Cloud Messaging integration
+✅ German language notification templates
+✅ Wedding-specific notification types
+✅ Topic subscription management
+✅ Mock service for development
+✅ Comprehensive error handling
+✅ Mobile app integration ready
+✅ Production deployment support
+✅ Monitoring and analytics
+✅ Security best practices
+
+The Firebase Push Notification API is now fully integrated into your 4 Secrets
+Wedding application and ready for mobile app integration!
+
+================================================================================
