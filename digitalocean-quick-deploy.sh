@@ -61,7 +61,33 @@ echo "✅ Logs directory created"
 echo "✅ Files upload directory created"
 
 echo ""
-echo "🚀 Step 4: Start Application with PM2"
+echo "� Step 4: Fix Firebase Configuration"
+echo "===================================="
+
+# Ensure Firebase service account file has proper formatting
+echo "🔧 Formatting Firebase service account file..."
+if [ -f "firebase-service-account.json" ]; then
+    # Pretty print the JSON to ensure proper formatting
+    python3 -m json.tool firebase-service-account.json > firebase-service-account-temp.json 2>/dev/null || \
+    node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('firebase-service-account.json', 'utf8')), null, 2))" > firebase-service-account-temp.json
+
+    if [ -f "firebase-service-account-temp.json" ]; then
+        mv firebase-service-account-temp.json firebase-service-account.json
+        echo "✅ Firebase service account file formatted"
+    else
+        echo "⚠️ Could not format Firebase file, using original"
+    fi
+else
+    echo "❌ Firebase service account file not found"
+fi
+
+# Set proper permissions
+chmod 600 firebase-service-account.json 2>/dev/null || true
+
+echo "✅ Firebase configuration checked"
+
+echo ""
+echo "�🚀 Step 5: Start Application with PM2"
 echo "===================================="
 
 # Stop existing PM2 process if it exists
@@ -82,14 +108,14 @@ pm2 save
 echo "✅ Application started successfully with PM2"
 
 echo ""
-echo "⏳ Step 5: Wait for Server to Initialize"
+echo "⏳ Step 6: Wait for Server to Initialize"
 echo "========================================"
 
 echo "⏳ Waiting 10 seconds for server to start..."
 sleep 10
 
 echo ""
-echo "🧪 Step 6: Test API Endpoints"
+echo "🧪 Step 7: Test API Endpoints"
 echo "============================="
 
 # Test health check
@@ -137,6 +163,24 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ File Upload API: Failed"
 fi
+
+echo ""
+
+# Test Firebase connection specifically
+echo "🔍 Testing Firebase connection..."
+FIREBASE_RESPONSE=$(curl -s http://localhost:$PORT/api/notifications/test)
+if [ $? -eq 0 ]; then
+    echo "✅ Firebase Connection: Ready"
+    echo "   Response: $FIREBASE_RESPONSE"
+else
+    echo "❌ Firebase Connection: Failed"
+fi
+
+echo ""
+
+# Check PM2 logs for Firebase errors
+echo "🔍 Checking for Firebase initialization errors..."
+pm2 logs $PROJECT_NAME --lines 20 --nostream | grep -i firebase || echo "   No Firebase errors found in recent logs"
 
 echo ""
 echo "🎉 DEPLOYMENT COMPLETE!"
